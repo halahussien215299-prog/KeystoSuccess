@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Tajawal } from "next/font/google";
+import { Cairo } from "next/font/google";
 import "./globals.css";
 import { ContentProvider } from "@/context/ContentContext";
 import { SiteChromeWrapper } from "@/components/SiteChromeWrapper";
 import { readSiteContent } from "@/lib/content-store";
 
-const tajawal = Tajawal({
+const cairo = Cairo({
   subsets: ["arabic"],
-  weight: ["300", "400", "500", "700", "800", "900"],
-  variable: "--font-tajawal",
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-cairo",
   display: "swap"
 });
 
@@ -51,7 +51,7 @@ export default function RootLayout({
   const initialContent = readSiteContent();
 
   return (
-    <html lang="ar" dir="rtl" className={`${tajawal.variable} h-full antialiased`}>
+    <html lang="ar" dir="rtl" className={`${cairo.variable} h-full antialiased`}>
       <body className="min-h-full bg-[#f8fafc] text-zinc-900 font-sans">
         <ContentProvider initialContent={initialContent}>
           <SiteChromeWrapper>{children}</SiteChromeWrapper>
