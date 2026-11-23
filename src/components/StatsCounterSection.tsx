@@ -11,10 +11,10 @@ interface StatItem {
 }
 
 const statIcons = [
-  <Award key="award" className="w-4 h-4 text-amber-600 stroke-[2]" />,
-  <Users key="users" className="w-4 h-4 text-amber-600 stroke-[2]" />,
-  <Layers key="layers" className="w-4 h-4 text-amber-600 stroke-[2]" />,
-  <ShieldCheck key="shield" className="w-4 h-4 text-amber-600 stroke-[2]" />
+  <Award key="award" className="w-4 h-4 text-[#d6b124] stroke-[2]" />,
+  <Users key="users" className="w-4 h-4 text-[#d6b124] stroke-[2]" />,
+  <Layers key="layers" className="w-4 h-4 text-[#d6b124] stroke-[2]" />,
+  <ShieldCheck key="shield" className="w-4 h-4 text-[#d6b124] stroke-[2]" />
 ];
 
 function AnimatedStatCell({
@@ -73,17 +73,17 @@ function AnimatedStatCell({
     <div
       className={`relative p-3.5 sm:p-7 rounded-2xl flex flex-col justify-between items-center text-center select-none transition-all duration-300 group ${
         isFirst
-          ? "bg-gradient-to-b from-amber-50/60 via-white to-white"
+          ? "bg-gradient-to-b from-[#d6b124]/10 via-white to-white"
           : "hover:bg-zinc-50/70"
       }`}
     >
       {/* Top Micro-Badge with Icon */}
       <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center shadow-xs transition-transform duration-300 group-hover:scale-110">
+        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#d6b124]/10 border border-[#d6b124]/30 flex items-center justify-center shadow-xs transition-transform duration-300 group-hover:scale-110">
           {statIcons[index % statIcons.length]}
         </div>
         {isFirst && (
-          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-[9px] sm:text-[10px] font-bold text-amber-800 tracking-wide">
+          <span className="px-2 py-0.5 rounded-full bg-[#d6b124]/15 border border-[#d6b124]/35 text-[9px] sm:text-[10px] font-bold text-[#b59218] tracking-wide">
             إنجاز معتمد
           </span>
         )}
@@ -92,7 +92,7 @@ function AnimatedStatCell({
       {/* Main Animated Number */}
       <div
         className={`font-mono text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-1 sm:mb-2 transition-transform duration-300 group-hover:scale-105 ${
-          isFirst ? "text-amber-600" : "text-[#0d233a]"
+          isFirst ? "text-[#d6b124]" : "text-[#0d233a]"
         }`}
       >
         {displayValue}
@@ -100,7 +100,7 @@ function AnimatedStatCell({
 
       {/* Label and Sublabel */}
       <div className="space-y-0.5">
-        <h4 className="text-xs sm:text-sm font-bold text-zinc-900 group-hover:text-amber-800 transition-colors">
+        <h4 className="text-xs sm:text-sm font-bold text-zinc-900 group-hover:text-[#b59218] transition-colors">
           {stat.label}
         </h4>
         <p className="text-[10px] sm:text-xs text-zinc-500 font-normal line-clamp-1 sm:line-clamp-none">
@@ -112,8 +112,8 @@ function AnimatedStatCell({
       <div
         className={`absolute bottom-0 inset-x-8 h-0.5 rounded-full transition-all duration-300 ${
           isFirst
-            ? "bg-[#eab308]"
-            : "bg-transparent group-hover:bg-amber-400/60 group-hover:inset-x-6"
+            ? "bg-[#d6b124]"
+            : "bg-transparent group-hover:bg-[#d6b124]/60 group-hover:inset-x-6"
         }`}
       />
     </div>
@@ -157,7 +157,7 @@ export function StatsCounterSection() {
       dir="rtl"
     >
       {/* Modern Island Bar with subtle gradient rim */}
-      <div className="p-[1.5px] rounded-3xl bg-gradient-to-r from-amber-400/40 via-amber-200/20 to-amber-500/40 shadow-xl shadow-zinc-900/10">
+      <div className="p-[1.5px] rounded-3xl bg-gradient-to-r from-[#d6b124]/40 via-[#d6b124]/20 to-[#d6b124]/40 shadow-xl shadow-zinc-900/10">
         <div className="bg-white/98 backdrop-blur-2xl rounded-[22px] grid grid-cols-2 lg:grid-cols-4 divide-y-0 sm:divide-y-0 sm:divide-x sm:divide-x-reverse divide-zinc-100 p-2 sm:p-2.5 gap-2 sm:gap-0">
           {stats.map((stat, idx) => (
             <AnimatedStatCell

@@ -74,7 +74,7 @@ export function BentoServices() {
                 {/* Card Body */}
                 <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between text-right space-y-3">
                   <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-[#0d233a] group-hover:text-amber-600 transition-colors mb-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-[#0d233a] group-hover:text-[#d6b124] transition-colors mb-2">
                       {dept.title}
                     </h3>
                     <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed line-clamp-2">
@@ -82,7 +82,7 @@ export function BentoServices() {
                     </p>
                   </div>
 
-                  <div className="pt-2 flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-600 group-hover:text-amber-700 transition-colors">
+                  <div className="pt-2 flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#d6b124] group-hover:text-[#b59218] transition-colors">
                     <span>اعرف المزيد</span>
                     <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1.5" />
                   </div>
