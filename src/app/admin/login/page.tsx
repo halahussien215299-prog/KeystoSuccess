@@ -90,17 +90,14 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md bg-white border border-zinc-200/90 rounded-2xl p-6 sm:p-8 shadow-xl shadow-zinc-900/5 relative z-10 text-right">
         {/* Brand Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full p-1 bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-600 shadow-md shadow-amber-500/20 mb-3">
-            <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden p-1">
-              <Image
-                src="/logo.png"
-                alt="شعار مفاتيح النجاح"
-                width={56}
-                height={56}
-                className="object-cover"
-                priority
-              />
-            </div>
+          <div className="inline-flex items-center justify-center w-20 h-20 mb-2 relative">
+            <Image
+              src="/logo.png"
+              alt="شعار مفاتيح النجاح"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 tracking-tight">
             لوحة تحكم مفاتيح النجاح

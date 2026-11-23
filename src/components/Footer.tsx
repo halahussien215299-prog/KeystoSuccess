@@ -38,16 +38,17 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-3.5 group">
               <div
                 style={{
-                  width: `${company?.logoSize || 56}px`,
-                  height: `${company?.logoSize || 56}px`
+                  width: `${company?.logoSize || 76}px`,
+                  height: `${company?.logoSize || 76}px`
                 }}
-                className="relative rounded-full overflow-hidden shrink-0 shadow-xl shadow-black/50 ring-2 ring-[#c6ae4c]/35 group-hover:ring-[#c6ae4c] group-hover:scale-105 transition-all duration-300"
+                className="relative shrink-0 transition-transform duration-300 group-hover:scale-105"
               >
                 <Image
                   src={company?.logoUrl || "/logo.png"}
                   alt="شعار مفاتيح النجاح"
                   fill
-                  className="object-cover scale-110"
+                  sizes="80px"
+                  className="object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
                 />
               </div>
               <div>

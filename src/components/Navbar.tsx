@@ -32,7 +32,7 @@ export function Navbar() {
 
   const company = content?.company;
   const logoUrl = company?.logoUrl || "/logo.png";
-  const logoSize = company?.logoSize || 64;
+  const logoSize = company?.logoSize || 76;
   const phones = company?.phones || [
     { label: "خدمة العملاء", number: "0918536828", display: "0918536828", waLink: "249918536828" },
     { label: "المبيعات والحجوزات", number: "0110061201", display: "0110061201", waLink: "249110061201" },
@@ -102,26 +102,26 @@ export function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Brand Logo (Right side in RTL) - Dynamic Logo Size & Source */}
+          {/* Brand Logo (Right side in RTL) - Free-standing transparent logo without clipping circle */}
           <Link
             href="/"
-            className="flex items-center group focus:outline-none"
+            className="flex items-center group focus:outline-none py-1"
             aria-label="الرئيسية - شركة مفاتيح النجاح المحدودة"
           >
             <div
               style={{
-                width: `${logoSize}px`,
-                height: `${logoSize}px`
+                width: `${logoSize || 76}px`,
+                height: `${logoSize || 76}px`
               }}
-              className="relative rounded-full overflow-hidden shrink-0 shadow-xl shadow-black/50 ring-2 ring-[#c6ae4c]/40 group-hover:ring-[#c6ae4c] group-hover:scale-105 group-hover:shadow-amber-500/25 transition-all duration-300"
+              className="relative shrink-0 transition-transform duration-300 group-hover:scale-105"
             >
               <Image
                 src={logoUrl}
                 alt="شعار شركة مفاتيح النجاح المحدودة"
                 fill
                 priority
-                sizes="(max-width: 768px) 60px, 100px"
-                className="object-cover scale-110"
+                sizes="(max-width: 768px) 70px, 120px"
+                className="object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
               />
             </div>
           </Link>

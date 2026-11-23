@@ -96,12 +96,12 @@ export function HeroSection() {
         <div className="max-w-3xl space-y-4 sm:space-y-6 text-right animate-in fade-in duration-500">
           {/* Top Pill Badge matching reference colors */}
           <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#16273e]/90 border border-[#2b4463] shadow-md backdrop-blur-md">
-            <div className="relative w-5 h-5 rounded-full overflow-hidden shrink-0">
+            <div className="relative w-6 h-6 shrink-0">
               <Image
                 src={logoUrl}
                 alt="شعار"
                 fill
-                sizes="20px"
+                sizes="24px"
                 className="object-contain"
               />
             </div>
