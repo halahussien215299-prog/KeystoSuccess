@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = updateAdminCredentials(currentPassword, newUsername, newPassword);
+    const result = await updateAdminCredentials(currentPassword, newUsername, newPassword);
     if (!result.success) {
       return NextResponse.json(
         { success: false, error: result.error || "فشل تحديث بيانات الدخول" },

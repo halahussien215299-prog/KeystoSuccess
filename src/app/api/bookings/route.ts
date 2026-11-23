@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { buildWhatsAppLink } from "@/lib/data";
+import { connectToDatabase } from "@/lib/mongodb";
+import { BookingModel, IBookingDoc } from "@/models/BookingModel";
 
 export interface BookingItem {
   id: string;
@@ -18,64 +20,64 @@ export interface BookingItem {
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "bookings.json");
 
-function getStoredBookings(): BookingItem[] {
+function getStoredLocalBookings(): BookingItem[] {
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
     if (!fs.existsSync(DATA_FILE)) {
-      const initialBookings: BookingItem[] = [
-        {
-          id: "bk-1001",
-          name: "أحمد عبد الله",
-          phone: "0912345678",
-          department: "النظافة والخدمات",
-          date: "2026-11-25",
-          message: "طلب تنظيف شامل لفيلا سكنية قبل الانتقال",
-          targetNumber: "0918536828",
-          createdAt: "2026-11-22T14:30:00Z",
-          status: "جديد"
-        },
-        {
-          id: "bk-1002",
-          name: "سارة محجوب",
-          phone: "0998877665",
-          department: "السفر والسياحة وتأشيرات العمرة",
-          date: "2026-12-01",
-          message: "استفسار عن باقة العمرة المميزة لأسرة مكونة من 4 أفراد",
-          targetNumber: "0110061223",
-          createdAt: "2026-11-22T16:15:00Z",
-          status: "قيد المراجعة"
-        }
-      ];
-      fs.writeFileSync(DATA_FILE, JSON.stringify(initialBookings, null, 2), "utf8");
-      return initialBookings;
+      return [];
     }
     const content = fs.readFileSync(DATA_FILE, "utf8");
     return JSON.parse(content) as BookingItem[];
   } catch (error) {
-    console.error("Error reading bookings file:", error);
+    console.error("Error reading local bookings file:", error);
     return [];
   }
 }
 
-function saveBookings(bookings: BookingItem[]) {
+function saveLocalBookings(bookings: BookingItem[]) {
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
     fs.writeFileSync(DATA_FILE, JSON.stringify(bookings, null, 2), "utf8");
   } catch (error) {
-    console.error("Error saving bookings file:", error);
+    console.error("Error saving local bookings file:", error);
   }
 }
 
+async function getLiveBookings(): Promise<BookingItem[]> {
+  try {
+    const conn = await connectToDatabase();
+    if (conn) {
+      const docs = await BookingModel.find({}).sort({ createdAt: -1 }).lean();
+      if (docs && docs.length > 0) {
+        return docs.map((d: any) => ({
+          id: d.id,
+          name: d.name,
+          phone: d.phone,
+          department: d.department,
+          date: d.date || "",
+          message: d.message || "",
+          targetNumber: d.targetNumber || "0918536828",
+          createdAt: d.createdAt,
+          status: d.status,
+        }));
+      }
+    }
+  } catch (err) {
+    console.warn("MongoDB bookings fetch failed, falling back to local:", err);
+  }
+  return getStoredLocalBookings();
+}
+
 export async function GET() {
-  const bookings = getStoredBookings();
+  const bookings = await getLiveBookings();
   return NextResponse.json({
     success: true,
     count: bookings.length,
-    bookings
+    bookings,
   });
 }
 
@@ -108,26 +110,37 @@ export async function POST(req: NextRequest) {
       message: message || "",
       targetNumber: assignedNumber,
       createdAt: new Date().toISOString(),
-      status: "جديد"
+      status: "جديد",
     };
 
-    const currentBookings = getStoredBookings();
-    currentBookings.unshift(newBooking);
-    saveBookings(currentBookings);
+    // Save to local file
+    const current = getStoredLocalBookings();
+    current.unshift(newBooking);
+    saveLocalBookings(current);
+
+    // Save to MongoDB Atlas
+    try {
+      const conn = await connectToDatabase();
+      if (conn) {
+        await BookingModel.create(newBooking);
+      }
+    } catch (dbErr) {
+      console.error("Error saving booking to MongoDB:", dbErr);
+    }
 
     const whatsappUrl = buildWhatsAppLink(waTarget, {
       name: newBooking.name,
       phone: newBooking.phone,
       department: newBooking.department,
       date: newBooking.date,
-      message: newBooking.message
+      message: newBooking.message,
     });
 
     return NextResponse.json({
       success: true,
       message: "تم تسجيل طلبك بنجاح، فريقنا سيتواصل معك فوراً.",
       booking: newBooking,
-      whatsappUrl
+      whatsappUrl,
     });
   } catch (err: unknown) {
     console.error("Booking submission error:", err);
@@ -150,22 +163,28 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const bookings = getStoredBookings();
+    // Update local file
+    const bookings = getStoredLocalBookings();
     const target = bookings.find((b) => b.id === id);
-    if (!target) {
-      return NextResponse.json(
-        { success: false, error: "الحجز غير موجود." },
-        { status: 404 }
-      );
+    if (target) {
+      target.status = status;
+      saveLocalBookings(bookings);
     }
 
-    target.status = status;
-    saveBookings(bookings);
+    // Update MongoDB
+    try {
+      const conn = await connectToDatabase();
+      if (conn) {
+        await BookingModel.updateOne({ id }, { $set: { status } });
+      }
+    } catch (dbErr) {
+      console.error("Error updating booking status in MongoDB:", dbErr);
+    }
 
     return NextResponse.json({
       success: true,
       message: "تم تحديث حالة الحجز بنجاح.",
-      booking: target
+      booking: target || { id, status },
     });
   } catch (err: unknown) {
     console.error("Error updating booking:", err);
@@ -188,21 +207,24 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    let bookings = getStoredBookings();
-    const initialCount = bookings.length;
+    // Delete from local file
+    let bookings = getStoredLocalBookings();
     bookings = bookings.filter((b) => b.id !== id);
+    saveLocalBookings(bookings);
 
-    if (bookings.length === initialCount) {
-      return NextResponse.json(
-        { success: false, error: "الحجز غير موجود." },
-        { status: 404 }
-      );
+    // Delete from MongoDB
+    try {
+      const conn = await connectToDatabase();
+      if (conn) {
+        await BookingModel.deleteOne({ id });
+      }
+    } catch (dbErr) {
+      console.error("Error deleting booking from MongoDB:", dbErr);
     }
 
-    saveBookings(bookings);
     return NextResponse.json({
       success: true,
-      message: "تم حذف الحجز بنجاح."
+      message: "تم حذف الحجز بنجاح.",
     });
   } catch (err: unknown) {
     console.error("Error deleting booking:", err);

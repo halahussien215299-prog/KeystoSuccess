@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const isValid = verifyCredentials(username.trim(), password);
+    const isValid = await verifyCredentials(username.trim(), password);
     if (!isValid) {
       return NextResponse.json(
         { success: false, error: "اسم المستخدم أو كلمة المرور غير صحيحة" },

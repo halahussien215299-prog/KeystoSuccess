@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { connectToDatabase } from "./mongodb";
+import { AdminUserModel, IAdminUserDoc } from "@/models/AdminUserModel";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const AUTH_FILE = path.join(DATA_DIR, "admin-auth.json");
@@ -46,8 +48,28 @@ export function getAdminCredentials(): AdminCredentials {
   }
 }
 
-export function verifyCredentials(username: string, password: string): boolean {
-  const creds = getAdminCredentials();
+export async function getLiveAdminCredentials(): Promise<AdminCredentials> {
+  try {
+    const conn = await connectToDatabase();
+    if (conn) {
+      const doc = await AdminUserModel.findOne({}).lean();
+      if (doc) {
+        return {
+          username: doc.username,
+          passwordHash: doc.passwordHash,
+          salt: doc.salt,
+          updatedAt: doc.updatedAt,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("MongoDB auth fetch failed, falling back to local:", err);
+  }
+  return getAdminCredentials();
+}
+
+export async function verifyCredentials(username: string, password: string): Promise<boolean> {
+  const creds = await getLiveAdminCredentials();
   if (creds.username !== username) {
     return false;
   }
@@ -55,12 +77,12 @@ export function verifyCredentials(username: string, password: string): boolean {
   return inputHash === creds.passwordHash;
 }
 
-export function updateAdminCredentials(
+export async function updateAdminCredentials(
   currentPass: string,
   newUsername?: string,
   newPassword?: string
-): { success: boolean; error?: string } {
-  const creds = getAdminCredentials();
+): Promise<{ success: boolean; error?: string }> {
+  const creds = await getLiveAdminCredentials();
   const inputHash = hashPassword(currentPass, creds.salt);
   if (inputHash !== creds.passwordHash) {
     return { success: false, error: "كلمة المرور الحالية غير صحيحة" };
@@ -75,12 +97,28 @@ export function updateAdminCredentials(
   };
 
   try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
     fs.writeFileSync(AUTH_FILE, JSON.stringify(updated, null, 2), "utf8");
-    return { success: true };
   } catch (err) {
-    console.error("Error saving updated credentials:", err);
-    return { success: false, error: "حدث خطأ أثناء حفظ التعديلات" };
+    console.error("Error saving updated credentials locally:", err);
   }
+
+  try {
+    const conn = await connectToDatabase();
+    if (conn) {
+      await AdminUserModel.updateOne(
+        {},
+        { $set: updated },
+        { upsert: true }
+      );
+    }
+  } catch (err) {
+    console.error("Error saving updated credentials to MongoDB:", err);
+  }
+
+  return { success: true };
 }
 
 export function generateSessionToken(username: string): string {

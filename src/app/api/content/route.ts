@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readSiteContent, saveSiteContent, SiteContent } from "@/lib/content-store";
+import { getLiveSiteContent, saveLiveSiteContent, SiteContent } from "@/lib/content-store";
 
 export async function GET() {
-  const content = readSiteContent();
+  const content = await getLiveSiteContent();
   return NextResponse.json({
     success: true,
     content
@@ -19,13 +19,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const current = readSiteContent();
+    const current = await getLiveSiteContent();
     const updated: SiteContent = {
       ...current,
       ...body
     };
 
-    const saved = saveSiteContent(updated);
+    const saved = await saveLiveSiteContent(updated);
     if (!saved) {
       return NextResponse.json(
         { success: false, error: "تعذر حفظ التغييرات على الخادم" },
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "تم تحديث محتوى الموقع بنجاح!",
+      message: "تم تحديث محتوى الموقع بنجاح وحفظه في السحابة!",
       content: updated
     });
   } catch (err: unknown) {
