@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0d233a;
+  --card: #ffffff;
+  --card-foreground: #0d233a;
+  --border: #e2e8f0;
+  --primary: #eab308;
+  --primary-foreground: #0d233a;
+  --gold: #eab308;
+  --gold-light: #facc15;
+  --gold-dark: #ca8a04;
+  --navy: #0d233a;
+  --navy-dark: #071524;
+  --navy-card: #0b1e33;
+  --navy-border: #132f4c;
+}
+
+html {
+  scroll-behavior: smooth;
+  direction: rtl;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0d233a;
+  font-family: var(--font-tajawal), "Tajawal", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #091b2c;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #eab308;
+}
+
+/* Luxury Navy & Gold helpers */
+.bg-navy-dark {
+  background-color: #071524;
+}
+
+.bg-navy-main {
+  background-color: #0d233a;
+}
+
+.bg-navy-card {
+  background-color: #0b1e33;
+}
+
+.border-navy {
+  border-color: #132f4c;
+}
+
+.text-gold {
+  color: #eab308;
+}
+
+.text-gradient-gold {
+  color: #eab308;
+}
+
+.text-gradient-dark {
+  color: #0d233a;
+}
