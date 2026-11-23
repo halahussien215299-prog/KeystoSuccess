@@ -171,17 +171,6 @@ export default function AdminLoginPage() {
             <span>تسجيل الدخول إلى اللوحة</span>
           </button>
         </form>
-
-        {/* Demo Credentials Notice */}
-        <div className="mt-6 pt-4 border-t border-zinc-100 text-center text-[11px] text-zinc-500 bg-zinc-50 p-2.5 rounded-xl border border-zinc-200/80">
-          <p className="font-semibold text-zinc-700 mb-0.5">بيانات الدخول الافتراضية:</p>
-          <p>
-            اليوزر: <code className="font-mono text-amber-800 font-bold">admin</code> | الباسورد: <code className="font-mono text-amber-800 font-bold">admin123</code>
-          </p>
-          <p className="text-[10px] text-zinc-600 mt-1">
-            (يمكنك تغيير اليوزر والباسورد من داخل لوحة التحكم بعد الدخول)
-          </p>
-        </div>
       </div>
     </div>
   );

@@ -37,7 +37,10 @@ import {
   LogOut,
   Share2,
   Loader2,
-  Sparkles
+  Sparkles,
+  Upload,
+  Camera,
+  RotateCcw
 } from "lucide-react";
 import { useSiteContent } from "@/context/ContentContext";
 import { SiteContent, getInitialContent } from "@/lib/content-types";
@@ -70,6 +73,11 @@ export default function AdminDashboardPage() {
   const [bookings, setBookings] = useState<BookingItem[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [bookingFilter, setBookingFilter] = useState<string>("all");
+
+  // Logo upload state (supports mobile & desktop)
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadLogoSuccess, setUploadLogoSuccess] = useState<string | null>(null);
+  const [uploadLogoError, setUploadLogoError] = useState<string | null>(null);
   const [bookingSearch, setBookingSearch] = useState<string>("");
 
   // Selected department in departments tab
@@ -106,6 +114,67 @@ export default function AdminDashboardPage() {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch {}
     window.location.href = "/admin/login";
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    setUploadLogoError(null);
+    setUploadLogoSuccess(null);
+
+    try {
+      const data = new FormData();
+      data.append("file", file);
+      data.append("isLogo", "true");
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: data
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "فشل رفع الشعار");
+      }
+
+      const updatedCompany = {
+        ...formData.company,
+        logoUrl: json.url
+      };
+      setFormData((prev) => ({
+        ...prev,
+        company: updatedCompany
+      }));
+
+      // Automatically sync and persist to cloud
+      await updateContent({ company: updatedCompany });
+
+      setUploadLogoSuccess("تم رفع الشعار وحفظه بنجاح على الموقع!");
+      setTimeout(() => setUploadLogoSuccess(null), 4000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "حدث خطأ أثناء رفع الشعار";
+      setUploadLogoError(msg);
+    } finally {
+      setUploadingLogo(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  const handleResetLogo = async () => {
+    if (!confirm("هل ترغب في استعادة الشعار الافتراضي للموقع؟")) return;
+    const updatedCompany = {
+      ...formData.company,
+      logoUrl: "/logo.png"
+    };
+    setFormData((prev) => ({
+      ...prev,
+      company: updatedCompany
+    }));
+    await updateContent({ company: updatedCompany });
+    setUploadLogoSuccess("تمت استعادة الشعار الافتراضي بنجاح");
+    setTimeout(() => setUploadLogoSuccess(null), 3000);
   };
 
   const handleUpdateCredentials = async (e: React.FormEvent) => {
@@ -1191,46 +1260,115 @@ export default function AdminDashboardPage() {
               <div className="p-6 rounded-2xl bg-white border border-zinc-200/90 shadow-xs space-y-6">
                 {/* Logo and Brand Icon Live Size Management */}
                 <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-50/50 via-white to-amber-50/30 border-2 border-amber-300/70 shadow-xs space-y-5">
-                  <div className="flex items-center justify-between pb-3 border-b border-amber-200/60">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-amber-200/60 gap-2">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-700">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-700 shrink-0">
                         <Sparkles className="w-5 h-5 stroke-[2]" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-zinc-900">إعدادات الشعار والتحكم في الحجم المباشر</h3>
-                        <p className="text-xs text-zinc-500">تغيير رابط صورة الشعار والتحكم في حجم العرض الفعلي في الموقع</p>
+                        <h3 className="text-sm font-bold text-zinc-900">إعدادات وتغيير الشعار (من الجوال والكمبيوتر)</h3>
+                        <p className="text-xs text-zinc-500">ارفع شعار شركتك مباشرة من ألبوم الصور أو الكاميرا وتحكم في حجمه المباشر</p>
                       </div>
                     </div>
+                    {formData.company.logoUrl && formData.company.logoUrl !== "/logo.png" && (
+                      <button
+                        type="button"
+                        onClick={handleResetLogo}
+                        className="px-3 py-1.5 rounded-xl border border-zinc-200 hover:bg-zinc-100 text-zinc-600 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 text-zinc-500" />
+                        <span>استعادة الشعار الأصلي</span>
+                      </button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                     {/* Live Preview Box */}
-                    <div className="md:col-span-4 flex flex-col items-center justify-center p-4 rounded-xl bg-[#0d233a] border border-[#1e3a5f] text-center">
-                      <span className="text-[11px] text-zinc-400 mb-2">معاينة الشعار الحية:</span>
+                    <div className="md:col-span-4 flex flex-col items-center justify-center p-6 rounded-2xl bg-[#0d233a] border border-[#1e3a5f] text-center shadow-lg relative overflow-hidden group">
+                      <div className="absolute top-2 right-2 text-[10px] text-zinc-400 font-mono bg-[#162f4d] px-2 py-0.5 rounded-md border border-[#23456d]">
+                        معاينة حية في الموقع
+                      </div>
                       <div
                         style={{
-                          width: `${formData.company.logoSize || 64}px`,
-                          height: `${formData.company.logoSize || 64}px`
+                          width: `${formData.company.logoSize || 76}px`,
+                          height: `${formData.company.logoSize || 76}px`
                         }}
-                        className="relative rounded-full overflow-hidden shadow-xl ring-2 ring-[#c6ae4c] transition-all duration-300 mx-auto"
+                        className="relative transition-all duration-300 my-3 shrink-0"
                       >
                         <Image
                           src={formData.company.logoUrl || "/logo.png"}
                           alt="معاينة الشعار"
                           fill
-                          className="object-cover scale-110"
+                          unoptimized={formData.company.logoUrl?.startsWith("data:") || formData.company.logoUrl?.startsWith("blob:")}
+                          className="object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
                         />
                       </div>
-                      <span className="text-xs font-mono font-bold text-[#c6ae4c] mt-2">
-                        {formData.company.logoSize || 64}px
+                      <span className="text-xs font-mono font-bold text-[#c6ae4c] mt-1">
+                        عرض الشعار: {formData.company.logoSize || 76}px
+                      </span>
+                      <span className="text-[11px] text-zinc-400 mt-0.5">
+                        بدون إطار أو دائرة تحصره (شفاف وحر)
                       </span>
                     </div>
 
                     {/* Controls */}
                     <div className="md:col-span-8 space-y-4">
+                      {/* Mobile & Desktop Direct File Upload */}
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-800 mb-2 flex items-center gap-1.5">
+                          <Upload className="w-4 h-4 text-amber-600" />
+                          <span>رفع صورة الشعار من الجوال أو الكمبيوتر:</span>
+                        </label>
+                        
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                          <label className="relative flex-1 cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                              onChange={handleLogoUpload}
+                              disabled={uploadingLogo}
+                              className="sr-only"
+                            />
+                            <div className={`w-full px-4 py-3.5 rounded-xl border-2 border-dashed ${uploadingLogo ? "bg-amber-50 border-amber-400" : "bg-white hover:bg-amber-50/50 border-amber-300 hover:border-amber-500"} transition-all flex items-center justify-center gap-3 text-center shadow-2xs`}>
+                              {uploadingLogo ? (
+                                <>
+                                  <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
+                                  <span className="text-xs font-bold text-amber-700">جاري رفع وحفظ الشعار سحابياً...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
+                                    <Camera className="w-4 h-4" />
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-xs font-bold text-zinc-900">اضغط لاختيار صورة من الجوال أو الكاميرا</p>
+                                    <p className="text-[10px] text-zinc-500">يدعم PNG و JPG و WEBP و SVG (حتى 10MB)</p>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </label>
+                        </div>
+
+                        {uploadLogoSuccess && (
+                          <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2 animate-in fade-in">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>{uploadLogoSuccess}</span>
+                          </div>
+                        )}
+
+                        {uploadLogoError && (
+                          <div className="mt-2 p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center gap-2 animate-in fade-in">
+                            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                            <span>{uploadLogoError}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Direct URL input (Advanced) */}
                       <div>
                         <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                          مسار أو رابط الشعار (Logo URL):
+                          أو مسار ورابط ملف الشعار المباشر:
                         </label>
                         <input
                           type="text"
@@ -1241,37 +1379,40 @@ export default function AdminDashboardPage() {
                               company: { ...formData.company, logoUrl: e.target.value }
                             })
                           }
+                          placeholder="/logo.png أو رابط خارجي"
                           className="w-full px-4 py-2 rounded-xl bg-white border border-zinc-200 text-xs font-mono text-zinc-900 outline-none focus:border-amber-500"
                         />
                       </div>
 
+                      {/* Size slider */}
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-semibold text-zinc-700">
-                            حجم الشعار بالبكسل (Logo Size):
+                          <label className="text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
+                            <Sliders className="w-3.5 h-3.5 text-amber-600" />
+                            <span>حجم الشعار في الموقع (Logo Size):</span>
                           </label>
                           <span className="text-xs font-mono font-bold text-amber-700">
-                            {formData.company.logoSize || 64} بكسل
+                            {formData.company.logoSize || 76} بكسل
                           </span>
                         </div>
                         <input
                           type="range"
                           min="40"
-                          max="110"
+                          max="120"
                           step="2"
-                          value={formData.company.logoSize || 64}
+                          value={formData.company.logoSize || 76}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              company: { ...formData.company, logoSize: parseInt(e.target.value) || 64 }
+                              company: { ...formData.company, logoSize: parseInt(e.target.value) || 76 }
                             })
                           }
                           className="w-full accent-amber-500 cursor-pointer"
                         />
                         <div className="flex justify-between text-[10px] text-zinc-400 mt-1">
                           <span>صغير (40px)</span>
-                          <span>قياسي (64px)</span>
-                          <span>كبير (110px)</span>
+                          <span>مثالي وموصى به (76px)</span>
+                          <span>كبير (120px)</span>
                         </div>
                       </div>
                     </div>

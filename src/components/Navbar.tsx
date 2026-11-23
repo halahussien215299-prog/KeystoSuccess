@@ -120,6 +120,7 @@ export function Navbar() {
                 alt="شعار شركة مفاتيح النجاح المحدودة"
                 fill
                 priority
+                unoptimized={logoUrl?.startsWith("data:") || logoUrl?.startsWith("blob:")}
                 sizes="(max-width: 768px) 70px, 120px"
                 className="object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
               />

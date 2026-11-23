@@ -48,6 +48,7 @@ export function Footer() {
                   alt="شعار مفاتيح النجاح"
                   fill
                   sizes="80px"
+                  unoptimized={company?.logoUrl?.startsWith("data:") || company?.logoUrl?.startsWith("blob:")}
                   className="object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
                 />
               </div>

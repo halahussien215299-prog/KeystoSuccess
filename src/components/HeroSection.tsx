@@ -102,6 +102,7 @@ export function HeroSection() {
                 alt="شعار"
                 fill
                 sizes="24px"
+                unoptimized={logoUrl?.startsWith("data:") || logoUrl?.startsWith("blob:")}
                 className="object-contain"
               />
             </div>
